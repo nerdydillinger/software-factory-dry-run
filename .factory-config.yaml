@@ -1,0 +1,84 @@
+# Software Factory config for dry-run test repo
+
+repo:
+  owner: nerdydillinger
+  name: software-factory-dry-run
+  default_branch: main
+
+pipeline:
+  stages:
+    - name: plan
+      enabled: true
+      skill: writing-plans
+      gate: revision
+      max_retries: 3
+
+    - name: approve-plan
+      enabled: true
+      gate: escalation
+      timeout_minutes: 60
+      fallback: abort
+
+    - name: implement
+      enabled: true
+      skill: subagent-driven-development
+      gate: revision
+      max_auto_fix_attempts: 3
+
+    - name: ci-review
+      enabled: true
+      gate: revision
+      auto_fix_ci: true
+      max_auto_fix_attempts: 3
+      require_review: true
+
+    - name: approve-merge
+      enabled: true
+      gate: escalation
+      timeout_minutes: 120
+      fallback: abort
+
+    - name: merge
+      enabled: true
+      gate: pre-flight
+      merge_method: squash
+
+    - name: deploy
+      enabled: false
+
+dispatch:
+  rules:
+    - label: bug
+      pipeline: bug-fix
+    - label: enhancement
+      pipeline: feature
+  default_pipeline: feature
+
+approvals:
+  plan:
+    required: true
+    approvers:
+      - anthonylrivera
+  merge:
+    required: true
+    approvers:
+      - anthonylrivera
+  deploy:
+    required: true
+    approvers:
+      - anthonylrivera
+
+notifications:
+  plan_ready: telegram
+  plan_approved: github_comment
+  implement_started: github_comment
+  pr_opened: github_comment
+  review_requested: github_comment
+  merge_ready: telegram
+  merge_complete: telegram
+  failure: telegram
+  deploy_complete: telegram
+
+context_budget:
+  warn_at: 50
+  abort_at: 70
