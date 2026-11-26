@@ -24,6 +24,6 @@ def test_divide():
 
 
 def test_divide_by_zero():
-    """This test should FAIL — divide() does not handle ZeroDivisionError."""
-    with pytest.raises(ZeroDivisionError):
+    """This test should FAIL — divide() raises raw ZeroDivisionError instead of ValueError."""
+    with pytest.raises(ValueError, match="Cannot divide by zero"):
         divide(10, 0)
